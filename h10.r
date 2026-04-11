@@ -4,7 +4,7 @@
 suppressPackageStartupMessages(library(tidyverse))
 suppressPackageStartupMessages(library(reshape2))
 suppressPackageStartupMessages(library(magrittr))
-suppressPackageStartupMessages(library(scales))
+suppressPackageStartupMessages(library(paletteer))
 
 # C# has a pound, ensure the disabling of comments
 lang_data <- read.table("languages.csv", header = TRUE, sep = ",", comment.char = "")
@@ -38,9 +38,56 @@ processed_data <- merge(processed_data, release_data, by = "language")
 # i can also add general era categories so that we can see the general trend of these languages. i will do this by using the case_when() which lets me chain if else statements
 processed_data %<>% mutate(era = case_when(release_year < 1990 ~ "Legacy", release_year < 2006 ~ "Established", TRUE ~ "Modern"))
 
-# this first plot will help show results across the era
+
+# some more useful information for our graphs and analysis
+
+# average overall popularity change for individual languages
+lang_avg <- processed_data %>% 
+  group_by(language, era) %>%
+  summarise(avg_popularity = mean(popularity), .groups = "drop")
+
+# average popularity change as the years progress for each era
+era_yearly <- processed_data %>%
+  group_by(era, year) %>%
+  summarise(avg_popularity = mean(popularity), .groups = "drop") %>%
+  group_by(era) %>%
+  mutate(yoy_change = avg_popularity - lag(avg_popularity))
+
+
+# alright, now we will need data to attempt to answer our questions
+
+# Do newer languages show a consistent growth trend while older languages slip into irrelevancy?
+growth_model <- lm(popularity ~ release_year, data = processed_data)
+summary(model)
+
+# Are there any older languages that are outperforming expectations?
+
+
+# Can we forecast what languages are likely to grow or shrink in usage over the next couple of years?
+
+
+# we are going to need a couple of graphs to fully vizualize and understand everything that is going on
+
+# plot 1 - overall language trends over time
 ggplot(processed_data, aes(x = year, y = popularity, group = language, color = era)) +
-    geom_line()
+  geom_line(linewidth = 1) +
+  scale_color_paletteer_d("nationalparkcolors::Arches")
 
+# plot 2 - honed in average trend per era over time
+ggplot(era_yearly, aes(x = year, y = avg_popularity, color = era)) +
+  geom_line(linewidth = 1) +
+  scale_color_paletteer_d("nationalparkcolors::Arches")
 
-head(processed_data)
+# plot 3 - this second plot will help show each languages popularity performance as time goes on. we can cross compare them individually
+ggplot(processed_data, aes(x = year, y = popularity, color = era)) +
+  geom_line() +
+  facet_wrap(~ language, scales = "free_y") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) + # this simply rotates the text on the graph
+  scale_color_paletteer_d("nationalparkcolors::Arches") 
+  
+# plot 4 - average popularity per language
+ggplot(lang_avg, aes(x = reorder(language, avg_popularity), y = avg_popularity, fill = era)) +
+  geom_bar(stat = "identity") +
+  coord_flip() +
+  labs(x = "year") +
+  scale_fill_paletteer_d("nationalparkcolors::Arches")
