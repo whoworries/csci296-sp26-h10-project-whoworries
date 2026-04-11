@@ -58,7 +58,7 @@ era_yearly <- processed_data %>%
 
 # Do newer languages show a consistent growth trend while older languages slip into irrelevancy?
 growth_model <- lm(popularity ~ release_year, data = processed_data)
-summary(model)
+summary(growth_model)
 
 # Are there any older languages that are outperforming expectations?
 
@@ -89,5 +89,5 @@ ggplot(processed_data, aes(x = year, y = popularity, color = era)) +
 ggplot(lang_avg, aes(x = reorder(language, avg_popularity), y = avg_popularity, fill = era)) +
   geom_bar(stat = "identity") +
   coord_flip() +
-  labs(x = "year") +
+  labs(x = "language") +
   scale_fill_paletteer_d("nationalparkcolors::Arches")
