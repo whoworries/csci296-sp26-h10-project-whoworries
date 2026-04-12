@@ -75,9 +75,9 @@ overall_bar <- ggplot(lang_avg, aes(x = reorder(language, avg_popularity), y = a
   scale_fill_paletteer_d("nationalparkcolors::Arches")
 
 # -------------------------------------------------------------------------------------------------
-# Q: Do newer languages show a consistent growth trend while older languages slip into irrelevancy?
+# Q1: Do newer languages show a consistent growth trend while older languages slip into irrelevancy?
 # P3: honed in average trend per era over time
-# LM: avg_popularity ~ era * year
+# A:  avg_popularity ~ era * year
 # -------------------------------------------------------------------------------------------------
 
 avg_era <- ggplot(era_yearly, aes(x = year, y = avg_popularity, color = era)) +
@@ -90,9 +90,9 @@ growth_model <- lm(formula = avg_popularity ~ era * year, data = era_yearly)
 summary(growth_model)
 
 # -------------------------------------------------------------------------------------------------
-# Q: Are there any older languages that are outperforming expectations?
+# Q2: Are there any older languages that are outperforming expectations?
 # P4: each languages popularity performance as time goes on. we can cross compare them individually
-# LM: ?
+# A:  examine residuals for outliers
 # -------------------------------------------------------------------------------------------------
 
 individ_data <- ggplot(processed_data, aes(x = year, y = popularity, color = era)) +
@@ -101,8 +101,27 @@ individ_data <- ggplot(processed_data, aes(x = year, y = popularity, color = era
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) + # this simply rotates the text on the graph
   scale_color_paletteer_d("nationalparkcolors::Arches") 
 
+  # predict what each language should score based on era trends
+  processed_data %<>%
+  left_join(era_yearly %>% select(era, year, avg_popularity), by = c("era", "year")) %>%
+  mutate(residual = popularity - avg_popularity)
+
+  # average residual per language — positive means outperforming, negative means underperforming
+  outlier_analysis <- processed_data %>%
+    group_by(language, era) %>%
+    summarise(avg_residual = mean(residual), .groups = "drop") %>%
+    arrange(desc(avg_residual))
+
+  summary(outlier_analysis$avg_residual)
+
+  print("OUTPERFORMING — above era expectations")
+  outlier_analysis %>% filter(avg_residual > 0.23)
+
+  print("UNDERPERFORMING — below era expectations")
+  outlier_analysis %>% filter(avg_residual < -3.18)
+
 # -------------------------------------------------------------------------------------------------
-# Q: Can we forecast what languages are likely to grow or shrink in usage over the next couple of years?
+# Q3: Can we forecast what languages are likely to grow or shrink in usage over the next couple of years?
 # P5: ?
 # LM: ?
 # -------------------------------------------------------------------------------------------------
