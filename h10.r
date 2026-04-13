@@ -5,6 +5,7 @@ suppressPackageStartupMessages(library(tidyverse))
 suppressPackageStartupMessages(library(reshape2))
 suppressPackageStartupMessages(library(magrittr))
 suppressPackageStartupMessages(library(paletteer))
+library(svglite)
 
 # C# has a pound, ensure the disabling of comments
 lang_data <- read.table("languages.csv", header = TRUE, sep = ",", comment.char = "")
@@ -141,8 +142,8 @@ change_plot <- ggplot(change_data, aes(x = reorder(language, change), y = change
   scale_fill_paletteer_d("nationalparkcolors::Arches")
 
 
-print(overall_bar)
-print(overall_line)
-print(avg_era)
-print(individ_data)
-print(change_plot)
+ggsave("graphs/01_overall_bar.svg", plot = overall_bar, width = 10, height = 6)
+ggsave("graphs/02_overall_line.svg", plot = overall_line, width = 10, height = 6)
+ggsave("graphs/03_avg_era.svg", plot = avg_era, width = 10, height = 6)
+ggsave("graphs/04_individ_data.svg", plot = individ_data, width = 14, height = 10)
+ggsave("graphs/05_change_plot.svg", plot = change_plot, width = 10, height = 6)
