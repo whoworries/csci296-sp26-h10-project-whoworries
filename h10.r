@@ -75,9 +75,7 @@ overall_line <- ggplot(processed_data, aes(x = year, y = popularity, group = lan
 # average popularity change as the years progress for each era
 era_yearly <- processed_data %>%
   group_by(era, year) %>%
-  summarise(avg_popularity = mean(popularity), .groups = "drop") %>%
-  group_by(era) %>%
-  mutate(yoy_change = avg_popularity - lag(avg_popularity))
+  summarise(avg_popularity = mean(popularity), .groups = "drop")
 
 avg_era <- ggplot(era_yearly, aes(x = year, y = avg_popularity, color = era)) +
   geom_line(linewidth = 1) +
